@@ -16,6 +16,7 @@ import {
   Calendar, 
   Clock, 
   ChevronRight, 
+  ChevronLeft,
   X, 
   Plus, 
   CheckCircle2, 
@@ -495,100 +496,116 @@ export default function LeadsAdminPage() {
       {/* VIEW MODE 1: INTERACTIVE KANBAN BOARD */}
       {/* ==================================================== */}
       {viewMode === "kanban" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 overflow-x-auto pb-4">
+        <div className="w-full max-w-full overflow-x-auto pb-6 pt-2">
+          <div className="flex items-start space-x-4 min-w-max">
           {KANBAN_COLUMNS.map((col) => {
             const colLeads = filteredLeads.filter(l => l.status === col.id);
             return (
               <div 
                 key={col.id} 
-                className={`rounded-2xl border border-slate-200/80 p-3 flex flex-col space-y-3 min-w-[220px] ${col.color}`}
+                className={`rounded-2xl border border-slate-200/80 p-4 flex flex-col space-y-4 w-72 shrink-0 ${col.color} shadow-sm`}
               >
                 {/* Column Header */}
                 <div className="flex items-center justify-between px-1 pb-2 border-b border-slate-200/60">
-                  <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">{col.label}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${col.badgeColor}`}>
+                  <span className="text-xs font-black text-slate-800 uppercase tracking-wider">{col.label}</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-black ${col.badgeColor}`}>
                     {colLeads.length}
                   </span>
                 </div>
 
                 {/* Cards Container */}
-                <div className="space-y-3 flex-grow overflow-y-auto max-h-[600px] pr-1">
-                  {colLeads.map((lead) => (
-                    <div
-                      key={lead.id}
-                      onClick={() => setSelectedLead(lead)}
-                      className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-2.5 group relative"
-                    >
-                      <div className="flex items-start justify-between">
+                <div className="space-y-3 flex-grow overflow-y-auto max-h-[650px] pr-1">
+                  {colLeads.length === 0 ? (
+                    <div className="text-center py-8 px-4 border border-dashed border-slate-200/80 rounded-xl">
+                      <p className="text-xs font-semibold text-slate-400">No leads</p>
+                    </div>
+                  ) : (
+                    colLeads.map((lead) => (
+                      <div
+                        key={lead.id}
+                        onClick={() => setSelectedLead(lead)}
+                        className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer space-y-3 group relative"
+                      >
+                        {/* Header: Lead ID & Source Badge */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{lead.id}</span>
+                          <span className="text-[9px] font-extrabold px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full border border-slate-200/60 uppercase">
+                            {lead.source.split(" ")[0]}
+                          </span>
+                        </div>
+
+                        {/* Customer Info */}
                         <div>
-                          <span className="text-[9px] font-bold text-slate-400 block">{lead.id}</span>
-                          <h4 className="font-extrabold text-slate-900 text-xs group-hover:text-emerald-600 transition-colors">
+                          <h4 className="font-black text-slate-900 text-sm tracking-tight group-hover:text-emerald-600 transition-colors">
                             {lead.name}
                           </h4>
-                          <span className="text-[9px] text-slate-500 block">{lead.city}</span>
+                          <div className="flex items-center space-x-1 text-[11px] font-medium text-slate-500 mt-0.5">
+                            <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
+                            <span className="truncate">{lead.city || "Location N/A"}</span>
+                          </div>
                         </div>
-                        <span className="text-[8px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold uppercase">
-                          {lead.source.split(" ")[0]}
-                        </span>
-                      </div>
 
-                      <div className="text-[10px] space-y-1 text-slate-600 border-t border-slate-100 pt-2">
-                        <p className="font-bold text-slate-800 line-clamp-1">{lead.packageTitle}</p>
-                        <div className="flex items-center justify-between text-slate-500">
-                          <span>{lead.travelDate}</span>
-                          <span className="font-bold text-slate-700">{lead.adultsCount}A / {lead.childrenCount}C</span>
+                        {/* Package & Trip Details Box */}
+                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1.5">
+                          <p className="font-bold text-slate-800 text-xs truncate">{lead.packageTitle}</p>
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold pt-1 border-t border-slate-200/60">
+                            <span className="flex items-center space-x-1">
+                              <Calendar className="h-3 w-3 text-slate-400" />
+                              <span>{lead.travelDate}</span>
+                            </span>
+                            <span className="font-extrabold text-slate-700 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                              {lead.adultsCount}A / {lead.childrenCount}C
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Quick Action Bar on Card */}
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            triggerWhatsApp(lead.name, lead.phone, lead.packageTitle);
-                          }}
-                          className="p-1 hover:bg-emerald-50 text-emerald-600 rounded transition-colors"
-                          title="Chat on WhatsApp"
-                        >
-                          <MessageSquare className="h-3.5 w-3.5" />
-                        </button>
+                        {/* Action Bar */}
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerWhatsApp(lead.name, lead.phone, lead.packageTitle);
+                            }}
+                            className="inline-flex items-center space-x-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-bold transition-all border border-emerald-200/60"
+                            title="Chat on WhatsApp"
+                          >
+                            <MessageSquare className="h-3 w-3 text-emerald-600" />
+                            <span>WhatsApp</span>
+                          </button>
 
-                        <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                          {col.id !== "new" && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const idx = KANBAN_COLUMNS.findIndex(c => c.id === col.id);
-                                if (idx > 0) handleUpdateStatus(lead.id, KANBAN_COLUMNS[idx - 1].id);
-                              }}
-                              className="text-[9px] px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded font-bold"
-                            >
-                              ←
-                            </button>
-                          )}
-                          {col.id !== "lost" && col.id !== "won" && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const idx = KANBAN_COLUMNS.findIndex(c => c.id === col.id);
-                                if (idx < KANBAN_COLUMNS.length - 1) handleUpdateStatus(lead.id, KANBAN_COLUMNS[idx + 1].id);
-                              }}
-                              className="text-[9px] px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded font-bold"
-                            >
-                              →
-                            </button>
-                          )}
+                          <div className="flex items-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                            {col.id !== "new" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const idx = KANBAN_COLUMNS.findIndex(c => c.id === col.id);
+                                  if (idx > 0) handleUpdateStatus(lead.id, KANBAN_COLUMNS[idx - 1].id);
+                                }}
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition-colors cursor-pointer"
+                                title="Move to Previous Stage"
+                              >
+                                <ChevronLeft className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                            {col.id !== "lost" && col.id !== "won" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const idx = KANBAN_COLUMNS.findIndex(c => c.id === col.id);
+                                  if (idx < KANBAN_COLUMNS.length - 1) handleUpdateStatus(lead.id, KANBAN_COLUMNS[idx + 1].id);
+                                }}
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition-colors cursor-pointer"
+                                title="Move to Next Stage"
+                              >
+                                <ChevronRight className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
+
                       </div>
-
-                    </div>
-                  ))}
-
-                  {colLeads.length === 0 && (
-                    <div className="p-6 text-center text-slate-400 text-[10px] font-medium border border-dashed border-slate-200 rounded-xl">
-                      No leads
-                    </div>
+                    ))
                   )}
                 </div>
 
@@ -596,7 +613,8 @@ export default function LeadsAdminPage() {
             );
           })}
         </div>
-      )}
+      </div>
+    )}
 
       {/* ==================================================== */}
       {/* VIEW MODE 2: ADVANCED DATA TABLE */}

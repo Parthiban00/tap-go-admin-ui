@@ -44,7 +44,13 @@ export const api = {
   getOverviewAnalytics: () => fetchApi<any>("/analytics/overview"),
 
   // Leads CRM
-  getLeads: (status?: string) => fetchApi<any>(`/leads${status ? `?status=${status}` : ""}`),
+  getLeads: (params?: string) => {
+    let query = "";
+    if (params) {
+      query = params.startsWith("?") ? params : `?status=${params}`;
+    }
+    return fetchApi<any>(`/leads${query}`);
+  },
   updateLeadStatus: (id: string, status: string, notes?: string) =>
     fetchApi<any>(`/leads/${id}/status`, {
       method: "PATCH",

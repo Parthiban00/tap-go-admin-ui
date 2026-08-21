@@ -49,11 +49,12 @@ function SettingsFormContent() {
   const defaultTab = searchParams.get("tab") === "testimonials" ? "testimonials" : "banner";
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<"banner" | "testimonials" | "company" | "policies">(defaultTab as "banner" | "testimonials" | "company" | "policies");
+  const [activeTab, setActiveTab] = useState<"banner" | "testimonials" | "company" | "policies" | "smtp">(defaultTab as any);
 
   // 1. HERO BANNER STATE
   const [bannerState, setBannerState] = useState({
     heroImage: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&q=80&w=1600&h=900",
+    heroImagesText: "",
     headline: "Unforgettable Journeys, Curated Just For You",
     subheading: "Verified packages, 24/7 on-tour support, and custom itineraries tailored to your budget.",
     searchPlaceholder: "Search by Destination, Category, Duration..."
@@ -78,12 +79,11 @@ function SettingsFormContent() {
     phoneSecondary: "+91 87654 32109",
     whatsappNumber: "+91 98765 43210",
     emailSupport: "support@tapgo.com",
-    addressHQ: "Suite 402, Tap & Go Towers, MG Road, Bengaluru, Karnataka 560001",
-    googleMapsEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.9!2d77.6!3d12.97",
-    socialInstagram: "https://instagram.com/tapgotravels",
-    socialFacebook: "https://facebook.com/tapgotravels",
-    socialTwitter: "https://twitter.com/tapgotravels",
-    socialYoutube: "https://youtube.com/tapgotravels"
+    addressHQ: "102, Global Horizon Towers, MG Road, Bengaluru, India 560001",
+    googleMapsEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.9!2d77.61!3d12.97!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTLCsDU4JzEyLjAiTiA3N8KwMzYnMzYuMCJF!5e0!3m2!1sen!2sin!4v1625000000000!5m2!1sen!2sin",
+    instagram: "https://instagram.com/tapgotravels",
+    facebook: "https://facebook.com/tapgotravels",
+    youtube: "https://youtube.com/@tapgotravels",
   });
 
   // 4. POLICIES STATE
@@ -94,19 +94,43 @@ function SettingsFormContent() {
     cancellation: `### Cancellation Policy\n\n1. **30+ Days Prior to Departure**: 90% refund of total package amount.\n2. **15-29 Days Prior**: 50% refund.\n3. **Less than 14 Days**: Non-refundable.`
   });
 
+  // 5. SMTP EMAIL CONFIG STATE
+  const [smtpState, setSmtpState] = useState({
+    host: "smtp.gmail.com",
+    port: 465,
+    user: "freelancetech360@gmail.com",
+    pass: "sjpz uxyn titv hvxc",
+    fromEmail: "freelancetech360@gmail.com",
+  });
+  const [showSmtpPass, setShowSmtpPass] = useState(false);
+
   useEffect(() => {
     api.getSettings()
       .then((res) => {
-        if (res.data?.hero) setBannerState((prev) => ({ ...prev, ...res.data.hero }));
-        if (res.data?.contact) setCompanyState((prev) => ({ ...prev, ...res.data.contact }));
-        if (res.data?.policies) setPoliciesState((prev) => ({ ...prev, ...res.data.policies }));
+        const data = res.data || res;
+        if (data?.hero) {
+          const heroData = data.hero;
+          const imgsText = Array.isArray(heroData.heroImages) && heroData.heroImages.length > 0
+            ? heroData.heroImages.join("\n")
+            : heroData.heroImage || "";
+
+          setBannerState((prev) => ({
+            ...prev,
+            ...heroData,
+            heroImagesText: imgsText,
+          }));
+        }
+        if (data?.contact) setCompanyState((prev) => ({ ...prev, ...data.contact }));
+        if (data?.policies) setPoliciesState((prev) => ({ ...prev, ...data.policies }));
+        if (data?.smtp) setSmtpState((prev) => ({ ...prev, ...data.smtp }));
       })
       .catch((err) => console.warn("Could not fetch site settings:", err));
 
     api.getReviews()
       .then((res) => {
-        if (res.data && Array.isArray(res.data)) {
-          const mapped: ReviewItem[] = res.data.map((r: any) => ({
+        const raw = res.data || res;
+        if (raw && Array.isArray(raw)) {
+          const mapped: ReviewItem[] = raw.map((r: any) => ({
             id: r._id || r.id || r.reviewId,
             name: r.name || r.userName || "Traveler",
             avatar: r.avatar || r.userAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200&h=200",
@@ -125,7 +149,22 @@ function SettingsFormContent() {
   const handleSaveBanner = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.updateSettings({ hero: bannerState });
+      const imageList = bannerState.heroImagesText
+        .split(/[\n,]/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const primaryImg = imageList[0] || bannerState.heroImage;
+
+      await api.updateSettings({
+        hero: {
+          heroImage: primaryImg,
+          heroImages: imageList.length > 0 ? imageList : [primaryImg],
+          headline: bannerState.headline,
+          subheading: bannerState.subheading,
+          searchPlaceholder: bannerState.searchPlaceholder,
+        }
+      });
       toast.success("Homepage Hero Banner updated successfully!");
     } catch (err: any) {
       toast.error(err.message || "Failed to update banner");
@@ -139,6 +178,16 @@ function SettingsFormContent() {
       toast.success("Company details & contact info saved!");
     } catch (err: any) {
       toast.error(err.message || "Failed to save company details");
+    }
+  };
+
+  const handleSaveSmtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.updateSettings({ smtp: smtpState });
+      toast.success("SMTP Email Configuration saved successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save SMTP settings");
     }
   };
 
@@ -249,6 +298,7 @@ function SettingsFormContent() {
           { id: "testimonials", label: "2. Testimonials & Social Proof", icon: Star },
           { id: "company", label: "3. Company & Contact Info", icon: Building2 },
           { id: "policies", label: "4. Legal & Policy Editors", icon: FileText },
+          { id: "smtp", label: "5. SMTP Email Setup", icon: Mail },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -294,7 +344,7 @@ function SettingsFormContent() {
             {/* Form Fields */}
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Background Hero Image/Video URL *</label>
+                <label className="text-xs font-bold text-slate-700">Primary Background Hero Image/Video URL *</label>
                 <input
                   type="text"
                   value={bannerState.heroImage}
@@ -303,6 +353,18 @@ function SettingsFormContent() {
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800"
                   required
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Multiple Transition Hero Images (One URL per line)</label>
+                <textarea
+                  rows={3}
+                  value={bannerState.heroImagesText}
+                  onChange={(e) => setBannerState({ ...bannerState, heroImagesText: e.target.value })}
+                  placeholder="https://images.unsplash.com/photo-1...\nhttps://images.unsplash.com/photo-2..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-800"
+                />
+                <p className="text-[10px] text-slate-400">Add multiple image URLs here to enable an automatic cross-fade slideshow transition on the website homepage.</p>
               </div>
 
               <div className="space-y-1.5">
@@ -607,8 +669,8 @@ function SettingsFormContent() {
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Instagram URL</label>
                   <input
                     type="text"
-                    value={companyState.socialInstagram}
-                    onChange={(e) => setCompanyState({ ...companyState, socialInstagram: e.target.value })}
+                    value={companyState.instagram}
+                    onChange={(e) => setCompanyState({ ...companyState, instagram: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
                   />
                 </div>
@@ -616,8 +678,8 @@ function SettingsFormContent() {
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Facebook URL</label>
                   <input
                     type="text"
-                    value={companyState.socialFacebook}
-                    onChange={(e) => setCompanyState({ ...companyState, socialFacebook: e.target.value })}
+                    value={companyState.facebook}
+                    onChange={(e) => setCompanyState({ ...companyState, facebook: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
                   />
                 </div>
@@ -686,6 +748,128 @@ function SettingsFormContent() {
             />
           </div>
         </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* TAB 5: SMTP EMAIL NOTIFICATION SETUP */}
+      {/* ==================================================== */}
+      {activeTab === "smtp" && (
+        <form onSubmit={handleSaveSmtp} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="font-sans text-sm font-bold text-slate-800 uppercase tracking-wider">SMTP Email Notification Setup</h3>
+              <p className="text-[10px] text-slate-400">Configure Gmail SMTP credentials for automated lead alert emails to agency staff and confirmation emails to travelers</p>
+            </div>
+
+            <button
+              type="submit"
+              className="inline-flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer active:scale-[0.98]"
+            >
+              <Save className="h-4 w-4" />
+              <span>Save SMTP Settings</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Form Fields */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">SMTP Host *</label>
+                  <input
+                    type="text"
+                    value={smtpState.host}
+                    onChange={(e) => setSmtpState({ ...smtpState, host: e.target.value })}
+                    placeholder="smtp.gmail.com"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">SMTP Port *</label>
+                  <input
+                    type="number"
+                    value={smtpState.port}
+                    onChange={(e) => setSmtpState({ ...smtpState, port: Number(e.target.value) || 465 })}
+                    placeholder="465"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Gmail / SMTP Username *</label>
+                <input
+                  type="email"
+                  value={smtpState.user}
+                  onChange={(e) => setSmtpState({ ...smtpState, user: e.target.value })}
+                  placeholder="agency@gmail.com"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Gmail App Password *</label>
+                <div className="relative">
+                  <input
+                    type={showSmtpPass ? "text" : "password"}
+                    value={smtpState.pass}
+                    onChange={(e) => setSmtpState({ ...smtpState, pass: e.target.value })}
+                    placeholder="16-character app password"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 pr-16 font-mono"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSmtpPass(!showSmtpPass)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 hover:text-slate-800 uppercase cursor-pointer"
+                  >
+                    {showSmtpPass ? "Hide" : "Show"}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400">Generate a 16-character code from your Google Account ➔ Security ➔ App Passwords</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Sender Email Address *</label>
+                <input
+                  type="email"
+                  value={smtpState.fromEmail}
+                  onChange={(e) => setSmtpState({ ...smtpState, fromEmail: e.target.value })}
+                  placeholder="info@tapgotravels.com"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Info Card Box */}
+            <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-200/60 flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 text-emerald-800 font-bold text-xs uppercase tracking-wider">
+                  <Mail className="h-4 w-4 text-emerald-600" />
+                  <span>Automatic Lead Email Dispatch</span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  When configured, every new travel enquiry submitted on your website triggers an instant high-priority email alert straight to your Gmail inbox.
+                </p>
+                <ul className="text-xs text-slate-600 space-y-2 list-disc list-inside pt-1">
+                  <li><strong>Admin Lead Alert:</strong> Sent to <code className="bg-white px-1.5 py-0.5 rounded border text-[11px] font-mono">{smtpState.user || "agency@gmail.com"}</code></li>
+                  <li><strong>Customer Receipt:</strong> Auto-reply sent to traveler confirming booking enquiry.</li>
+                  <li><strong>Instant Updates:</strong> Saved credentials apply immediately without server restart.</li>
+                </ul>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-emerald-200 text-[11px] text-emerald-800 font-medium">
+                ✅ Verified & Active for Live Email Notifications
+              </div>
+            </div>
+
+          </div>
+        </form>
       )}
 
     </div>

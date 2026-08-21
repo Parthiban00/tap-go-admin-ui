@@ -84,7 +84,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const environment = "Production";
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+    <div className="h-screen w-screen bg-slate-50 text-slate-900 flex overflow-hidden">
       {/* ---------------------------------------------------- */}
       {/* 1. SIDEBAR (Desktop Collapsible & Mobile Drawer) */}
       {/* ---------------------------------------------------- */}
@@ -99,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 bg-[#0F172A] text-slate-300 border-r border-slate-800 flex flex-col transition-all duration-300 ${
+        className={`fixed lg:static top-0 bottom-0 left-0 z-40 bg-[#0F172A] text-slate-300 border-r border-slate-800 flex flex-col h-full shrink-0 transition-all duration-300 ${
           isMobileOpen ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0"
         } ${isCollapsed ? "lg:w-20" : "lg:w-64"}`}
       >
@@ -124,7 +124,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Close mobile menu */}
           <button 
             onClick={() => setIsMobileOpen(false)}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 lg:hidden"
+            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 lg:hidden cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -141,13 +141,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all group relative ${
                   isActive 
-                    ? "bg-slate-800 text-emerald-400 shadow-sm" 
-                    : "hover:bg-slate-800/50 hover:text-white text-slate-450"
+                    ? "bg-slate-800 text-emerald-400 shadow-sm font-black" 
+                    : "hover:bg-slate-800/50 hover:text-white text-slate-400"
                 }`}
               >
                 <Icon className={`h-4.5 w-4.5 shrink-0 ${isActive ? "text-emerald-400" : "text-slate-400 group-hover:text-white"}`} />
                 {(!isCollapsed || isMobileOpen) ? (
-                  <span>{item.name}</span>
+                  <span className="truncate">{item.name}</span>
                 ) : (
                   /* Tooltip for Collapsed Sidebar */
                   <span className="absolute left-16 scale-0 bg-slate-950 text-white border border-slate-800 px-3 py-1.5 rounded-md text-[10px] uppercase font-bold tracking-wider z-50 group-hover:scale-100 transition-all shadow-lg whitespace-nowrap">
@@ -170,7 +170,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 bg-slate-850 hover:bg-slate-800 text-slate-450 hover:text-white rounded-lg transition-colors hidden lg:block ml-auto"
+            className="p-2 bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors hidden lg:block ml-auto cursor-pointer"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isCollapsed ? <ChevronRight className="h-4.5 w-4.5" /> : <ChevronLeft className="h-4.5 w-4.5" />}
@@ -179,20 +179,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* ---------------------------------------------------- */}
-      {/* 2. MAIN CONTAINER */}
+      {/* 2. MAIN CONTENT AREA */}
       {/* ---------------------------------------------------- */}
-      <div 
-        className={`flex-grow flex flex-col min-h-screen transition-all duration-300 ${
-          isCollapsed ? "lg:pl-20" : "lg:pl-64"
-        }`}
-      >
-        {/* TOP BAR */}
-        <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm shrink-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        {/* TOP BAR HEADER */}
+        <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between shrink-0 z-20">
           
           {/* Mobile hamburger menu */}
           <button
             onClick={() => setIsMobileOpen(true)}
-            className="p-2 hover:bg-slate-100 rounded-xl text-slate-650 lg:hidden shrink-0 mr-2"
+            className="p-2 hover:bg-slate-100 rounded-xl text-slate-600 lg:hidden shrink-0 mr-2 cursor-pointer"
           >
             <Menu className="h-5.5 w-5.5" />
           </button>
@@ -236,14 +232,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="absolute right-0 mt-2.5 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-50">
                   <button
                     onClick={() => { handleQuickAction("Add New Package"); setActionsOpen(false); }}
-                    className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center space-x-2"
+                    className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center space-x-2 cursor-pointer"
                   >
                     <Plus className="h-3.5 w-3.5 text-slate-400" />
                     <span>Add New Package</span>
                   </button>
                   <button
                     onClick={() => { handleQuickAction("Create New Lead"); setActionsOpen(false); }}
-                    className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center space-x-2"
+                    className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center space-x-2 cursor-pointer"
                   >
                     <Plus className="h-3.5 w-3.5 text-slate-400" />
                     <span>Add New Lead</span>
@@ -252,81 +248,55 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
             </div>
 
-            {/* Notification Bell */}
+            {/* Notifications Bell */}
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="p-2 hover:bg-slate-100 rounded-xl text-slate-600 transition-colors relative"
+                className="p-2 hover:bg-slate-100 rounded-xl text-slate-600 transition-colors relative cursor-pointer"
               >
                 <Bell className="h-5 w-5" />
-                <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center animate-bounce">
-                  3
-                </span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500" />
               </button>
 
               {notificationsOpen && (
                 <div className="absolute right-0 mt-2.5 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50">
                   <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Notifications</span>
-                    <span className="bg-rose-100 text-rose-600 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">3 New Leads</span>
+                    <span className="text-xs font-bold text-slate-800">Notifications</span>
+                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">3 New</span>
                   </div>
-                  <div className="divide-y divide-slate-100">
-                    <div className="px-4 py-2.5 hover:bg-slate-50 text-left">
-                      <p className="text-xs text-slate-800 font-semibold mb-0.5">New Custom Tour Request</p>
-                      <p className="text-[10px] text-slate-500">Rohan Kumar (Bali, Honeymoon, Budget: Luxury)</p>
-                      <span className="text-[9px] text-slate-400 block mt-1">2 mins ago</span>
-                    </div>
-                    <div className="px-4 py-2.5 hover:bg-slate-50 text-left">
-                      <p className="text-xs text-slate-800 font-semibold mb-0.5">Kerala Packages Enquiry</p>
-                      <p className="text-[10px] text-slate-500">Pooja Sharma (Phone: +91 98765 43210)</p>
-                      <span className="text-[9px] text-slate-400 block mt-1">15 mins ago</span>
+                  <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                    <div className="p-3 hover:bg-slate-50 transition-colors">
+                      <p className="text-xs font-semibold text-slate-800">New lead captured: Rohan Kumar</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">5 mins ago • Bali Romance Package</p>
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Profile Dropdown */}
+            {/* Profile Menu */}
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-100 rounded-xl transition-colors text-left"
+                className="flex items-center space-x-2 p-1.5 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
               >
-                {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-8.5 h-8.5 rounded-xl object-cover border border-slate-200"
-                  />
-                ) : (
-                  <div className="w-8.5 h-8.5 rounded-xl bg-slate-205 flex items-center justify-center text-xs font-bold text-slate-600">
-                    U
-                  </div>
-                )}
-                <div className="hidden sm:block">
-                  <p className="text-xs font-bold text-slate-800 leading-none mb-0.5">{user?.name || "Admin"}</p>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">{user?.role || "Super Admin"}</p>
+                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center border border-emerald-300">
+                  {user?.name ? user.name.charAt(0) : "A"}
                 </div>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400 hidden sm:block" />
+                <div className="hidden md:flex flex-col text-left">
+                  <span className="text-xs font-bold text-slate-800 leading-tight">{user?.name || "Super Admin"}</span>
+                  <span className="text-[10px] text-slate-400 font-semibold uppercase leading-tight">{user?.role || "superadmin"}</span>
+                </div>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 mt-2.5 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50">
-                  <div className="px-4 py-3 border-b border-slate-100 text-left">
-                    <p className="text-xs font-bold text-slate-800 leading-none mb-1">{user?.name || "Admin"}</p>
-                    <p className="text-[10px] text-slate-500 leading-none">{user?.email || "admin@tapgo.com"}</p>
+                <div className="absolute right-0 mt-2.5 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 divide-y divide-slate-100">
+                  <div className="px-4 py-2.5">
+                    <p className="text-xs font-bold text-slate-900">{user?.name || "Super Admin"}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{user?.email || "admin@tapgo.com"}</p>
                   </div>
                   <div className="py-1">
-                    <Link
-                      href="/settings"
-                      onClick={() => setProfileOpen(false)}
-                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center space-x-2"
-                    >
-                      <Settings className="h-4 w-4 text-slate-400" />
-                      <span>Account Settings</span>
-                    </Link>
-                  </div>
-                  <div className="border-t border-slate-100 pt-1 mt-1">
                     <button
                       onClick={() => { 
                         logout(); 
@@ -334,7 +304,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         toast.info("Logged out successfully."); 
                         window.location.href = "/login";
                       }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center space-x-2 cursor-pointer"
+                      className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center space-x-2 cursor-pointer"
                     >
                       <LogOut className="h-4 w-4 text-rose-500" />
                       <span>Sign Out</span>
@@ -347,8 +317,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        {/* PAGE CONTENT CONTAINER */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+        {/* SCROLLABLE PAGE CONTENT CONTAINER */}
+        <main className="flex-1 p-6 md:p-8 min-w-0 overflow-auto">
           {children}
         </main>
       </div>
