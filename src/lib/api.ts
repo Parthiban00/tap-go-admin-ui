@@ -36,7 +36,12 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
 export const api = {
   // Auth
   login: (credentials: any) => fetchApi<any>("/auth/login", { method: "POST", body: JSON.stringify(credentials) }),
+  logout: () => fetchApi<any>("/auth/logout", { method: "POST" }),
   getMe: () => fetchApi<any>("/auth/me"),
+
+  // Analytics & Dashboard
+  getDashboardStats: () => fetchApi<any>("/analytics/overview"),
+  getOverviewAnalytics: () => fetchApi<any>("/analytics/overview"),
 
   // Leads CRM
   getLeads: (status?: string) => fetchApi<any>(`/leads${status ? `?status=${status}` : ""}`),
@@ -47,7 +52,9 @@ export const api = {
     }),
 
   // Package Management
-  getPackages: () => fetchApi<any>("/packages"),
+  getPackages: (id?: string) => fetchApi<any>(`/packages${id ? `/${id}` : ""}`),
+  getPackageById: (id: string) => fetchApi<any>(`/packages/${id}`),
+  getPackageBySlug: (slug: string) => fetchApi<any>(`/packages/${slug}`),
   createPackage: (data: any) => fetchApi<any>("/packages", { method: "POST", body: JSON.stringify(data) }),
   updatePackage: (id: string, data: any) => fetchApi<any>(`/packages/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deletePackage: (id: string) => fetchApi<any>(`/packages/${id}`, { method: "DELETE" }),
@@ -58,15 +65,17 @@ export const api = {
   updateDestination: (id: string, data: any) => fetchApi<any>(`/destinations/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteDestination: (id: string) => fetchApi<any>(`/destinations/${id}`, { method: "DELETE" }),
 
-  // Analytics
-  getOverviewAnalytics: () => fetchApi<any>("/analytics/overview"),
-
   // CMS & Global Settings
   getSettings: () => fetchApi<any>("/settings"),
+  updateSettings: (data: any) => fetchApi<any>("/settings", { method: "PUT", body: JSON.stringify(data) }),
   updateHeroBanner: (data: any) => fetchApi<any>("/settings/hero", { method: "PUT", body: JSON.stringify(data) }),
   updateInfoBar: (data: any) => fetchApi<any>("/settings/infobar", { method: "PUT", body: JSON.stringify(data) }),
+  getReviews: () => fetchApi<any>("/settings/reviews"),
+  createReview: (data: any) => fetchApi<any>("/settings/reviews", { method: "POST", body: JSON.stringify(data) }),
+  deleteReview: (id: string) => fetchApi<any>(`/settings/reviews/${id}`, { method: "DELETE" }),
 
   // Media Library
   uploadMedia: (formData: FormData) => fetchApi<any>("/media/upload", { method: "POST", body: formData }),
   getMedia: () => fetchApi<any>("/media"),
+  deleteMedia: (id: string) => fetchApi<any>(`/media/${id}`, { method: "DELETE" }),
 };
